@@ -1,6 +1,7 @@
 from typing import Literal, Optional, Union
 
 from pydantic import BaseModel, Field
+from typesafe_sdk import Choice, Noul, Score
 
 
 # structured output for the questions we send to jev
@@ -33,3 +34,6 @@ class ScoreQuestion(BaseModel):
 
 class GeneratedQuestions(BaseModel):
     questions: list[Union[ChoiceQuestion, NoulQuestion, ScoreQuestion]]
+
+
+JevQuestions = dict[str, Union[Choice, Noul, Score]]

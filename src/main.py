@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 
 from src import config
+from src.router.appRouter import router
 
 @asynccontextmanager
 async def lifespan(app:FastAPI):
@@ -14,9 +15,4 @@ async def lifespan(app:FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
-
-@app.get("/items/webScrapper")
-async def scrapePerson(scrapperModel):
-    #we will get hear scrapperModel.personName
-    # split it and after that get firstName and lastName
-    pass
+app.include_router(router)
