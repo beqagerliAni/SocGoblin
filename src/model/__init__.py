@@ -9,6 +9,7 @@ from .generatedQuestionsModel import (
     ChoiceOption,
     ChoiceQuestion,
     GeneratedQuestions,
+    JevQuestions,
     NoulQuestion,
     ScoreQuestion,
 )
@@ -23,6 +24,7 @@ __all__ = [
     "ChoiceOption",
     "ChoiceQuestion",
     "GeneratedQuestions",
+    "JevQuestions",
     "NoulQuestion",
     "ScoreQuestion",
     "ScarapperModel",
