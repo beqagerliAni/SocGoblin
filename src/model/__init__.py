@@ -13,7 +13,16 @@ from .generatedQuestionsModel import (
     NoulQuestion,
     ScoreQuestion,
 )
+from .mindcaseJobModel import MindcaseJob
+from .postModel import PostModel, postModels
 from .scrapperModel import ScarapperModel
+from .instagramPostModel import InstagramPostComment, InstagramPostModel
+from .tiktokPostModel import (
+    TikTokPostAuthor,
+    TikTokPostHashtag,
+    TikTokPostModel,
+    TikTokPostSound,
+)
 
 __all__ = [
     "FacebookPostAuthor",
@@ -27,5 +36,14 @@ __all__ = [
     "JevQuestions",
     "NoulQuestion",
     "ScoreQuestion",
+    "MindcaseJob",
+    "PostModel",
+    "postModels",
     "ScarapperModel",
+    "InstagramPostComment",
+    "InstagramPostModel",
+    "TikTokPostAuthor",
+    "TikTokPostHashtag",
+    "TikTokPostModel",
+    "TikTokPostSound",
 ]

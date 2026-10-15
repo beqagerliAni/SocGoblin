@@ -1,43 +1,33 @@
-import asyncio
-
 import httpx
 
-from src.config import MINDCASE_BASE_URL, MINDCASE_KEY
-from src.model import FacebookPostModel
+from src.config import MINDCASE_KEY
+from src.model import MindcaseJob, PostModel, postModels
+from src.service.mindcase.enum.socialWebEnum import SocialWebEnum
+from src.service.mindcase.types.jobBuilderTypes import jobBuilders
 
 
 class MindcaseService():
     def __init__(self):
         self.apiKey = MINDCASE_KEY
-        self.baseUrl = MINDCASE_BASE_URL
 
-    async def parseFacebookGroup(self, links: list[str], maxResults: int = 10) -> list[FacebookPostModel]:
-        posts: dict[str, FacebookPostModel] = {}
-        # skip groups sent more than once, scrape the rest at the same time
-        uniqueLinks = dict.fromkeys(link.strip() for link in links)
-        groups = await asyncio.gather(*(self.parseSingleFacebookGroup(link, maxResults) for link in uniqueLinks))
-        # same post can show up twice, keep one per postId
-        for groupPosts in groups:
-            for post in groupPosts:
-                posts.setdefault(post.postId, post)
-        return list(posts.values())
+    def buildJobs(self, sources: dict[SocialWebEnum, list[str]]) -> list[MindcaseJob]:
+        jobs: list[MindcaseJob] = []
+        for platform, targets in sources.items():
+            for target in dict.fromkeys(target.strip() for target in targets):
+                jobs.append(jobBuilders[platform](target))
+        return jobs
 
-    async def parseSingleFacebookGroup(self, link: str, maxResults: int = 10) -> list[FacebookPostModel]:
+    async def runJob(self, job: MindcaseJob) -> list[PostModel]:
         async with httpx.AsyncClient(timeout=300) as client:
             resp = await client.post(
-                f"{self.baseUrl}/data/facebook/posts/run",
+                job.url,
                 params={"wait": "true"},
                 headers={"Authorization": f"Bearer {self.apiKey}"},
-                json={"params": {
-                    "groupUrls": link,
-                    "maxResults": maxResults,
-                }},
+                json={"params": job.params},
             )
         resp.raise_for_status()
         body = resp.json()
-        # mindcase answers 200 even when the job failed, the reason is in "error"
         if body.get("status") == "failed" or "data" not in body:
-            raise RuntimeError(body.get("error") or f"mindcase job did not return data for {link}")
-        rows = body["data"]
-        return [FacebookPostModel(**row) for row in rows]
-    
+            raise RuntimeError(body.get("error") or f"mindcase job did not return data for {job.target}")
+        model = postModels[job.platform]
+        return [model(**row) for row in body["data"]]

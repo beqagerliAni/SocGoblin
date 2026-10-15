@@ -2,7 +2,7 @@ import asyncio
 
 from fastapi import Depends
 
-from src.model import FacebookPostModel, ScarapperModel
+from src.model import JevQuestions, MindcaseJob, PostModel, ScarapperModel
 from src.service.jev.jevService import JevService
 from src.service.mindcase.mindcaseService import MindcaseService
 from src.service.openai.openaiService import OpenAiService
@@ -24,32 +24,35 @@ class AppService:
         self.jevService = jevService
 
     async def scrapeGroups(self, request: ScarapperModel):
-        links = list(dict.fromkeys(link.strip() for link in request.grups))
-
-        # openai and every group start at the same time
         questionsTask = asyncio.create_task(self.openAiService.generateJevQuestions(request.prompt))
-        scrapeTasks = {
-            asyncio.create_task(self.mindcaseService.parseSingleFacebookGroup(link)): link
-            for link in links
-        }
+        jobs = self.mindcaseService.buildJobs(request.sources)
+        return await self.processJobs(jobs, questionsTask)
+
+    async def processJobs(self, jobs: list[MindcaseJob], questionsTask: "asyncio.Task[JevQuestions]"):
+        scrapeTasks = {asyncio.create_task(self.mindcaseService.runJob(job)): job for job in jobs}
         questions = await questionsTask
 
-        seenPostIds: set[str] = set()
-        validPosts: list[FacebookPostModel] = []
-        failedGroups: dict[str, str] = {}
-        # groups come in the order they finish, the ones done while jev is busy wait their turn
+        seenPostIds: set[tuple[str, str]] = set()
+        validPosts: list[PostModel] = []
+        failed: dict[str, str] = {}
         async for task in asyncio.as_completed(scrapeTasks):
+            job = scrapeTasks[task]
             if task.exception():
-                # one bad group should not lose the posts of the others
-                failedGroups[scrapeTasks[task]] = str(task.exception())
+                failed[f"{job.platform.name}:{job.target}"] = str(task.exception())
                 continue
-            newPosts = [post for post in task.result() if post.postId not in seenPostIds]
-            seenPostIds.update(post.postId for post in newPosts)
+            
+            newPosts: list[PostModel] = []
+            # checked one by one so a post repeated inside the same job is also dropped
+            for post in task.result():
+                key = (job.platform.name, post.postId)
+                if key not in seenPostIds:
+                    seenPostIds.add(key)
+                    newPosts.append(post)
             validPosts.extend(await self.jevService.extractPostData(newPosts, questions))
 
         return {
             "questions": list(questions.keys()),
             "posts": len(seenPostIds),
             "validPosts": validPosts,
-            "failedGroups": failedGroups,
+            "failed": failed,
         }
