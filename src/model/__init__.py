@@ -16,6 +16,7 @@ from .generatedQuestionsModel import (
 from .mindcaseJobModel import MindcaseJob
 from .postModel import PostModel, postModels
 from .scrapperModel import ScarapperModel
+from .generatedSourcesModel import GeneratedSources
 from .instagramPostModel import InstagramPostComment, InstagramPostModel
 from .tiktokPostModel import (
     TikTokPostAuthor,
@@ -40,6 +41,7 @@ __all__ = [
     "PostModel",
     "postModels",
     "ScarapperModel",
+    "GeneratedSources",
     "InstagramPostComment",
     "InstagramPostModel",
     "TikTokPostAuthor",

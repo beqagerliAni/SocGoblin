@@ -25,8 +25,10 @@ class AppService:
 
     async def scrapeGroups(self, request: ScarapperModel):
         questionsTask = asyncio.create_task(self.openAiService.generateJevQuestions(request.prompt))
-        jobs = self.mindcaseService.buildJobs(request.sources)
-        return await self.processJobs(jobs, questionsTask)
+        sources = await self.openAiService.generateSources(request.prompt)
+        jobs = self.mindcaseService.buildJobs(sources)
+        result = await self.processJobs(jobs, questionsTask)
+        return {"sources": {platform.name: targets for platform, targets in sources.items()}, **result}
 
     async def processJobs(self, jobs: list[MindcaseJob], questionsTask: "asyncio.Task[JevQuestions]"):
         scrapeTasks = {asyncio.create_task(self.mindcaseService.runJob(job)): job for job in jobs}

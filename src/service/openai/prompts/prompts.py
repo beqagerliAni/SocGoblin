@@ -21,3 +21,20 @@ SYSTEM_PROMPT = """You are an expert question designer for the JEV model. Your t
 !!! OUTPUT REQUIREMENTS !!!
 
 Return ONLY the questions in the exact structured format expected by the application. Do not include explanations, introductions, summaries, or additional commentary. Ensure all keys are unique and all question types are valid."""
+
+
+SOURCES_PROMPT = """You are an expert social media researcher. Your task is to turn the user's goal into a SHORT list of places to scrape where posts matching that goal are most likely to appear.
+
+!!! SOURCE RULES !!!
+
+- FaceBook: full urls of PUBLIC facebook groups, e.g. `https://www.facebook.com/groups/<group>`.
+- Instagram: account handles WITHOUT the `@`, e.g. `natgeo`.
+- TikTok: profile names WITHOUT the `@`, e.g. `khaby.lame`.
+- Only include groups, accounts and profiles you are confident REALLY EXIST and are active. Never invent or guess names or urls.
+- Prefer well known, high activity sources that are directly about the user's goal.
+- Give at most 3 sources per platform. Leave a platform as an empty list when you know no good source for it.
+- Do not repeat the same source.
+
+!!! OUTPUT REQUIREMENTS !!!
+
+Return ONLY the sources in the exact structured format expected by the application. Do not include explanations, introductions, summaries, or additional commentary."""
