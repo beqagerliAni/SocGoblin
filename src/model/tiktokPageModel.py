@@ -4,7 +4,7 @@ from typing import Optional
 from pydantic import BaseModel, computed_field
 
 
-class TikTokPostAuthor(BaseModel):
+class TikTokPageAuthor(BaseModel):
     bio: Optional[str] = None
     avatar: Optional[str] = None
     videos: Optional[int] = None
@@ -24,11 +24,11 @@ class TikTokPostAuthor(BaseModel):
     businessCategory: Optional[str] = None
 
 
-class TikTokPostHashtag(BaseModel):
+class TikTokPageHashtag(BaseModel):
     name: str
 
 
-class TikTokPostSound(BaseModel):
+class TikTokPageSound(BaseModel):
     id: Optional[str] = None
     name: Optional[str] = None
     album: Optional[str] = None
@@ -38,9 +38,9 @@ class TikTokPostSound(BaseModel):
     videoCount: Optional[int] = None
 
 
-class TikTokPostModel(BaseModel):
+class TikTokPageModel(BaseModel):
     postUrl: str
-    author: TikTokPostAuthor
+    author: TikTokPageAuthor
     caption: Optional[str] = None
     postedDate: datetime
     views: Optional[int] = None
@@ -52,7 +52,7 @@ class TikTokPostModel(BaseModel):
     isSlideshow: bool = False
     isAd: bool = False
     isSponsored: bool = False
-    hashtags: list[TikTokPostHashtag] = []
+    hashtags: list[TikTokPageHashtag] = []
     mentions: list[str] = []
     effects: list[str] = []
     slideshowImages: Optional[list[str]] = None
@@ -60,7 +60,7 @@ class TikTokPostModel(BaseModel):
     thumbnail: Optional[str] = None
     durationS: Optional[float] = None
     resolution: Optional[str] = None
-    sound: Optional[TikTokPostSound] = None
+    sound: Optional[TikTokPageSound] = None
     location: Optional[str] = None
     locationAddress: Optional[str] = None
     country: Optional[str] = None

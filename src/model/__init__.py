@@ -1,9 +1,9 @@
-from .facebookPostModel import (
-    FacebookPostAuthor,
-    FacebookPostComment,
-    FacebookPostMedia,
-    FacebookPostModel,
-    FacebookPostSource,
+from .facebookPageModel import (
+    FacebookPageAuthor,
+    FacebookPageComment,
+    FacebookPageMedia,
+    FacebookPageModel,
+    FacebookPageSource,
 )
 from .generatedQuestionsModel import (
     ChoiceOption,
@@ -14,23 +14,23 @@ from .generatedQuestionsModel import (
     ScoreQuestion,
 )
 from .mindcaseJobModel import MindcaseJob
-from .postModel import PostModel, postModels
+from .pageModel import PageModel, pageModels
 from .scrapperModel import ScarapperModel
 from .generatedSourcesModel import GeneratedSources
-from .instagramPostModel import InstagramPostComment, InstagramPostModel
-from .tiktokPostModel import (
-    TikTokPostAuthor,
-    TikTokPostHashtag,
-    TikTokPostModel,
-    TikTokPostSound,
+from .instagramPageModel import InstagramPageComment, InstagramPageModel
+from .tiktokPageModel import (
+    TikTokPageAuthor,
+    TikTokPageHashtag,
+    TikTokPageModel,
+    TikTokPageSound,
 )
 
 __all__ = [
-    "FacebookPostAuthor",
-    "FacebookPostComment",
-    "FacebookPostMedia",
-    "FacebookPostModel",
-    "FacebookPostSource",
+    "FacebookPageAuthor",
+    "FacebookPageComment",
+    "FacebookPageMedia",
+    "FacebookPageModel",
+    "FacebookPageSource",
     "ChoiceOption",
     "ChoiceQuestion",
     "GeneratedQuestions",
@@ -38,14 +38,14 @@ __all__ = [
     "NoulQuestion",
     "ScoreQuestion",
     "MindcaseJob",
-    "PostModel",
-    "postModels",
+    "PageModel",
+    "pageModels",
     "ScarapperModel",
     "GeneratedSources",
-    "InstagramPostComment",
-    "InstagramPostModel",
-    "TikTokPostAuthor",
-    "TikTokPostHashtag",
-    "TikTokPostModel",
-    "TikTokPostSound",
+    "InstagramPageComment",
+    "InstagramPageModel",
+    "TikTokPageAuthor",
+    "TikTokPageHashtag",
+    "TikTokPageModel",
+    "TikTokPageSound",
 ]

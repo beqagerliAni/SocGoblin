@@ -4,7 +4,7 @@ from typing import Optional
 from pydantic import BaseModel, computed_field
 
 
-class InstagramPostComment(BaseModel):
+class InstagramPageComment(BaseModel):
     text: Optional[str] = None
     likes: int = 0
     authorId: Optional[str] = None
@@ -12,7 +12,7 @@ class InstagramPostComment(BaseModel):
     timestamp: Optional[datetime] = None
 
 
-class InstagramPostModel(BaseModel):
+class InstagramPageModel(BaseModel):
     postUrl: str
     caption: Optional[str] = None
     type: Optional[str] = None
@@ -38,7 +38,7 @@ class InstagramPostModel(BaseModel):
     hashtags: list[str] = []
     mentions: list[str] = []
     firstComment: Optional[str] = None
-    latestComments: list[InstagramPostComment] = []
+    latestComments: list[InstagramPageComment] = []
     captionLanguage: Optional[str] = None
     locationName: Optional[str] = None
     paidPartnership: bool = False

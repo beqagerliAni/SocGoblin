@@ -2,7 +2,7 @@ import asyncio
 
 from fastapi import Depends
 
-from src.model import JevQuestions, MindcaseJob, PostModel, ScarapperModel
+from src.model import JevQuestions, MindcaseJob, PageModel, ScarapperModel
 from src.service.jev.jevService import JevService
 from src.service.mindcase.mindcaseService import MindcaseService
 from src.service.openai.openaiService import OpenAiService
@@ -35,7 +35,7 @@ class AppService:
         questions = await questionsTask
 
         seenPostIds: set[tuple[str, str]] = set()
-        validPosts: list[PostModel] = []
+        validPosts: list[PageModel] = []
         failed: dict[str, str] = {}
         async for task in asyncio.as_completed(scrapeTasks):
             job = scrapeTasks[task]
@@ -43,7 +43,7 @@ class AppService:
                 failed[f"{job.platform.name}:{job.target}"] = str(task.exception())
                 continue
             
-            newPosts: list[PostModel] = []
+            newPosts: list[PageModel] = []
             # checked one by one so a post repeated inside the same job is also dropped
             for post in task.result():
                 key = (job.platform.name, post.postId)
