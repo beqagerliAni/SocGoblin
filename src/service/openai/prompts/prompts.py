@@ -27,10 +27,10 @@ SOURCES_PROMPT = """You are an expert social media researcher. Your task is to t
 
 !!! SOURCE RULES !!!
 
-- FaceBook: full urls of PUBLIC facebook groups, e.g. `https://www.facebook.com/groups/<group>`.
+- FaceBook: names of PUBLIC facebook pages as they appear in the page url, WITHOUT `https://www.facebook.com/`, e.g. `nike`.
 - Instagram: account handles WITHOUT the `@`, e.g. `natgeo`.
 - TikTok: profile names WITHOUT the `@`, e.g. `khaby.lame`.
-- Only include groups, accounts and profiles you are confident REALLY EXIST and are active. Never invent or guess names or urls.
+- Only include pages, accounts and profiles you are confident REALLY EXIST and are active. Never invent or guess names.
 - Prefer well known, high activity sources that are directly about the user's goal.
 - Give at most 3 sources per platform. Leave a platform as an empty list when you know no good source for it.
 - Do not repeat the same source.

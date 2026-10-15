@@ -4,14 +4,14 @@ from typing import Any, Optional
 from pydantic import BaseModel
 
 
-class FacebookPostAuthor(BaseModel):
+class FacebookPageAuthor(BaseModel):
     id: str
     url: Optional[str] = None
     name: str
     avatar: Optional[str] = None
 
 
-class FacebookPostComment(BaseModel):
+class FacebookPageComment(BaseModel):
     url: Optional[str] = None
     date: Optional[datetime] = None
     text: Optional[str] = None
@@ -19,12 +19,12 @@ class FacebookPostComment(BaseModel):
     author: Optional[str] = None
 
 
-class FacebookPostSource(BaseModel):
+class FacebookPageSource(BaseModel):
     url: str
     name: str
 
 
-class FacebookPostMedia(BaseModel):
+class FacebookPageMedia(BaseModel):
     url: Optional[str] = None
     type: Optional[str] = None
     imageOcr: Optional[str] = None
@@ -32,23 +32,23 @@ class FacebookPostMedia(BaseModel):
     thumbnailUrl: Optional[str] = None
 
 
-class FacebookPostModel(BaseModel):
+class FacebookPageModel(BaseModel):
     contentType: str
     postUrl: str
     postId: str
     postedAt: datetime
     text: Optional[str] = None
     reactions: int = 0
-    comments: int = 0
+    comments: Optional[int] = None
     shares: int = 0
     views: Optional[int] = None
     videoDuration: Optional[float] = None
     reactionBreakdown: Optional[dict[str, Optional[int]]] = None
-    author: FacebookPostAuthor
-    source: Optional[FacebookPostSource] = None
-    media: Optional[FacebookPostMedia] = None
+    author: FacebookPageAuthor
+    source: Optional[FacebookPageSource] = None
+    media: Optional[FacebookPageMedia] = None
     linkPreview: Optional[dict[str, Any]] = None
     mentions: list[Any] = []
     collaborators: list[Any] = []
-    topComments: list[FacebookPostComment] = []
+    topComments: list[FacebookPageComment] = []
     hashtags: Optional[list[str]] = None

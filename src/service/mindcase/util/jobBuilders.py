@@ -3,12 +3,12 @@ from src.model import MindcaseJob
 from src.service.mindcase.enum.socialWebEnum import SocialWebEnum
 
 
-def facebookJob(link: str, maxResults: int = 10) -> MindcaseJob:
+def facebookJob(page: str, maxResults: int = 10) -> MindcaseJob:
     return MindcaseJob(
         platform=SocialWebEnum.FaceBook,
-        target=link,
+        target=page,
         url=f"{MINDCASE_BASE_URL}{SocialWebEnum.FaceBook.value}",
-        params={"groupUrls": link, "maxResults": maxResults},
+        params={"urls": f"https://www.facebook.com/{page}", "maxResults": maxResults, "onlyPostsNewerThan": "", "onlyPostsOlderThan": ""},
     )
 
 
