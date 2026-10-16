@@ -67,13 +67,19 @@ class TikTokPageModel(BaseModel):
     hashtagViews: Optional[int] = None
     sourceQuery: Optional[str] = None
 
-    # mindcase sends no id, the video id is the last part of the url
     @computed_field
     @property
     def postId(self) -> str:
         return self.postUrl.rstrip("/").rsplit("/", 1)[-1]
 
-    # jev reads the post text from here
     @property
     def text(self) -> Optional[str]:
         return self.caption
+
+    @property
+    def hashtagList(self) -> list[str]:
+        return [f"#{tag.name.lstrip('#')}" for tag in self.hashtags]
+
+    @property
+    def publishedAt(self) -> datetime:
+        return self.postedDate

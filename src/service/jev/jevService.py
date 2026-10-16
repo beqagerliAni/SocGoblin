@@ -1,29 +1,56 @@
 import asyncio
 from typing import Optional
 
-from typesafe_sdk import AsyncTypeSafeClient
+from typesafe_sdk import AsyncTypeSafeClient, Noul
 from src.config import JEV_KEY
-from src.model import JevQuestions, PageModel
+from src.model import FiltersModel, JevQuestions, PageModel
+from src.service.jev.util.stateBuilder import buildState
 
 class JevService:
-    def __init__(self, maxParallel: int = 10):
+    
+    def __init__(self, maxParallel: int = 20):
+        self.client = AsyncTypeSafeClient(api_key=JEV_KEY, model="jev-latest")
         self.maxParallel = maxParallel
 
-    async def extractPostData(self, state:list[PageModel], questions:JevQuestions, threshold: float = 0.5) -> list[PageModel]:
-        limit = asyncio.Semaphore(self.maxParallel)
-        async with AsyncTypeSafeClient(api_key=JEV_KEY, model="jev-latest") as client:
-            # all posts are checked at the same time, gather keeps their order
-            results = await asyncio.gather(
-                *(self.checkPost(client, limit, post, questions, threshold) for post in state)
+    def buildNoulQuestions(self, filters: FiltersModel, instructions: str) -> JevQuestions:
+        questions: JevQuestions = {
+            "content_information": Noul(
+                instructions=instructions,
+                criteria={
+                    "true": f"The post is about: {filters.ContentInformation}",
+                    "false": f"The post is not about: {filters.ContentInformation}",
+                },
+            ),
+        }
+        if filters.hashtags:
+            hashtags = ", ".join(filters.hashtags)
+            questions["hashtags"] = Noul(
+                instructions=instructions,
+                criteria={
+                    "true": f"The post uses or is clearly about at least one of these hashtags: {hashtags}",
+                    "false": f"The post has nothing to do with any of these hashtags: {hashtags}",
+                },
             )
-        return [post for post in results if post is not None]
+        return questions
 
-    async def checkPost(self, client: AsyncTypeSafeClient, limit: asyncio.Semaphore, post: PageModel, questions: JevQuestions, threshold: float) -> Optional[PageModel]:
-        text = (post.text or "").strip()
-        if not text:
+    async def extractPostData(self, state:list[PageModel], questions:JevQuestions, threshold: float = 0.7) -> tuple[list[PageModel], dict[str, str]]:
+        limit = asyncio.Semaphore(self.maxParallel)
+        failedPosts: dict[str, str] = {}
+        results = await asyncio.gather(
+            *(self.checkPost(limit, post, questions, threshold, failedPosts) for post in state)
+        )
+        return [post for post in results if post is not None], failedPosts
+
+    async def checkPost(self, limit: asyncio.Semaphore, post: PageModel, questions: JevQuestions, threshold: float, failedPosts: dict[str, str]) -> Optional[PageModel]:
+        state = buildState(post, ["text", "hashtagList"])
+        if state is None:
             return None
-        async with limit:
-            response = await client.system_one(text, questions)
+        try:
+            async with limit:
+                response = await self.client.system_one(state, questions)
+        except Exception as error:
+            failedPosts[post.postUrl] = str(error) or type(error).__name__
+            return None
         nouls = [answer for answer in response.answers.values() if answer.type == "noul"]
         if all(answer.noul >= threshold for answer in nouls):
             return post

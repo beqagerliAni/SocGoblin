@@ -12,6 +12,20 @@ class InstagramPageComment(BaseModel):
     timestamp: Optional[datetime] = None
 
 
+class InstagramPageSlide(BaseModel):
+    id: Optional[str] = None
+    url: Optional[str] = None
+    videoUrl: Optional[str] = None
+
+
+class InstagramPageUser(BaseModel):
+    name: Optional[str] = None
+    private: Optional[bool] = None
+    url: Optional[str] = None
+    username: Optional[str] = None
+    verified: Optional[bool] = None
+
+
 class InstagramPageModel(BaseModel):
     postUrl: str
     caption: Optional[str] = None
@@ -33,12 +47,12 @@ class InstagramPageModel(BaseModel):
     image: Optional[str] = None
     videoUrl: Optional[str] = None
     carouselImages: list[str] = []
-    carouselSlideMediaUrls: list[str] = []
+    carouselSlideMediaUrls: list[InstagramPageSlide] = []
     durationS: Optional[float] = None
     hashtags: list[str] = []
     mentions: list[str] = []
     firstComment: Optional[str] = None
-    latestComments: list[InstagramPageComment] = []
+    recentComments: list[InstagramPageComment] = []
     captionLanguage: Optional[str] = None
     locationName: Optional[str] = None
     paidPartnership: bool = False
@@ -46,16 +60,22 @@ class InstagramPageModel(BaseModel):
     song: Optional[str] = None
     artist: Optional[str] = None
     originalAudio: Optional[bool] = None
-    taggedUsers: list[str] = []
-    coauthors: list[str] = []
+    taggedUsers: list[InstagramPageUser] = []
+    coauthors: list[InstagramPageUser] = []
 
-    # mindcase sends no id, the shortcode in the url is unique per post
     @computed_field
     @property
     def postId(self) -> str:
         return self.postUrl.rstrip("/").rsplit("/", 1)[-1]
 
-    # jev reads the post text from here
     @property
     def text(self) -> Optional[str]:
         return self.caption
+
+    @property
+    def hashtagList(self) -> list[str]:
+        return [f"#{tag.lstrip('#')}" for tag in self.hashtags]
+
+    @property
+    def publishedAt(self) -> datetime:
+        return self.posted

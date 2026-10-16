@@ -52,3 +52,11 @@ class FacebookPageModel(BaseModel):
     collaborators: list[Any] = []
     topComments: list[FacebookPageComment] = []
     hashtags: Optional[list[str]] = None
+
+    @property
+    def hashtagList(self) -> list[str]:
+        return [f"#{tag.lstrip('#')}" for tag in self.hashtags or []]
+
+    @property
+    def publishedAt(self) -> datetime:
+        return self.postedAt
