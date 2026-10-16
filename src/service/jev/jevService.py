@@ -22,15 +22,6 @@ class JevService:
                 },
             ),
         }
-        if filters.hashtags:
-            hashtags = ", ".join(filters.hashtags)
-            questions["hashtags"] = Noul(
-                instructions=instructions,
-                criteria={
-                    "true": f"The post uses or is clearly about at least one of these hashtags: {hashtags}",
-                    "false": f"The post has nothing to do with any of these hashtags: {hashtags}",
-                },
-            )
         return questions
 
     async def extractPostData(self, state:list[PageModel], questions:JevQuestions, threshold: float = 0.6) -> tuple[list[PageModel], dict[str, str]]:
@@ -44,7 +35,7 @@ class JevService:
     async def checkPost(self, limit: asyncio.Semaphore, post: PageModel, questions: JevQuestions, threshold: float, failedPosts: dict[str, str]) -> Optional[PageModel]:
         state = buildState(post, ["text"])
         if state is None:
-            print(f"[jev] skip {post.postUrl}: no text or hashtags")
+            print(f"[jev] skip {post.postUrl}: no text")
             return None
         try:
             async with limit:
