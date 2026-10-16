@@ -7,7 +7,7 @@ from src.service.openai.prompts.prompts import SOURCES_PROMPT
 
 
 class OpenAiService():
-    def __init__(self, model: str = "gpt-6-luna"):
+    def __init__(self, model: str = "gpt-6-sol"):
         self.model = model
 
     async def structuredOutput[T: BaseModel](self, prompt: str, structure: type[T], instructions: str | None = None, webSearch: bool = False) -> T:
