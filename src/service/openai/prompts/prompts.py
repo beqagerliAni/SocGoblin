@@ -9,7 +9,6 @@ SOURCES_PROMPT = """You are an expert social media researcher. Your task is to t
 - Brands list their real social profiles on their own website and on link pages like linktr.ee. When the results show the official website or a link page, OPEN it and take the facebook, instagram and tiktok links from it. This is often the most reliable way to find the right profile.
 - A profile url counts when you saw it in the search results OR on a page you opened (official website, linktr.ee, other link pages).
 - From the profile url (`facebook.com/<name>`, `instagram.com/<name>`, `tiktok.com/@<name>`) copy the name EXACTLY as it appears in the url. Do not shorten, translate or "fix" it.
-- Ignore urls of single posts, videos, groups, hashtags or search pages; only a profile url counts.
 - A brand can have several regional profiles (e.g. `webizgcc` and `webiz_international`); include each one that matches the user's request.
 
 !!! SOURCE RULES !!!

@@ -17,7 +17,7 @@ class OpenAiService():
                 instructions=instructions,
                 input=prompt,
                 text_format=structure,
-                tools=[{"type": "web_search"}] if webSearch else [],
+                tools=[{"type": "web_search", "search_context_size": 'high'}] if webSearch else [],
             )
         if response.output_parsed is None:
             raise RuntimeError(f"openai did not return a {structure.__name__}")
