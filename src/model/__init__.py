@@ -5,19 +5,13 @@ from .facebookPageModel import (
     FacebookPageModel,
     FacebookPageSource,
 )
-from .generatedQuestionsModel import (
-    ChoiceOption,
-    ChoiceQuestion,
-    GeneratedQuestions,
-    JevQuestions,
-    NoulQuestion,
-    ScoreQuestion,
-)
+from .filtersModel import FiltersModel
+from .jevQuestionsModel import JevQuestions
 from .mindcaseJobModel import MindcaseJob
 from .pageModel import PageModel, pageModels
 from .scrapperModel import ScarapperModel
 from .generatedSourcesModel import GeneratedSources
-from .instagramPageModel import InstagramPageComment, InstagramPageModel
+from .instagramPageModel import InstagramPageComment, InstagramPageModel, InstagramPageSlide, InstagramPageUser
 from .tiktokPageModel import (
     TikTokPageAuthor,
     TikTokPageHashtag,
@@ -31,12 +25,8 @@ __all__ = [
     "FacebookPageMedia",
     "FacebookPageModel",
     "FacebookPageSource",
-    "ChoiceOption",
-    "ChoiceQuestion",
-    "GeneratedQuestions",
+    "FiltersModel",
     "JevQuestions",
-    "NoulQuestion",
-    "ScoreQuestion",
     "MindcaseJob",
     "PageModel",
     "pageModels",
@@ -44,6 +34,8 @@ __all__ = [
     "GeneratedSources",
     "InstagramPageComment",
     "InstagramPageModel",
+    "InstagramPageSlide",
+    "InstagramPageUser",
     "TikTokPageAuthor",
     "TikTokPageHashtag",
     "TikTokPageModel",

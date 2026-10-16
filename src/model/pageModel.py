@@ -6,7 +6,6 @@ from .tiktokPageModel import TikTokPageModel
 
 PageModel = FacebookPageModel | InstagramPageModel | TikTokPageModel
 
-# which model a mindcase row turns into, per platform
 pageModels: dict[SocialWebEnum, type[PageModel]] = {
     SocialWebEnum.FaceBook: FacebookPageModel,
     SocialWebEnum.Instagram: InstagramPageModel,
