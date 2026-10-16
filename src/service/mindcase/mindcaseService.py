@@ -22,6 +22,7 @@ class MindcaseService():
         return jobs
 
     async def runJob(self, job: MindcaseJob) -> list[PageModel]:
+        print(f"[mindcase] {job.platform.name}:{job.target} started {job.params}")
         async with httpx.AsyncClient(timeout=300) as client:
             resp = await client.post(
                 job.url,
@@ -38,8 +39,9 @@ class MindcaseService():
         for row in body["data"]:
             try:
                 posts.append(model(**row))
-            except ValidationError:
-                continue
+            except ValidationError as error:
+                print(f"[mindcase] {job.platform.name}:{job.target} skipped row {row.get('postUrl')}: {error.errors()[0]['loc']} {error.errors()[0]['msg']}")
         since = datetime.combine(date.fromisoformat(POSTS_NEWER_THAN), datetime.min.time(), timezone.utc)
         newPosts = [post for post in posts if post.publishedAt.replace(tzinfo=post.publishedAt.tzinfo or timezone.utc) >= since]
+        print(f"[mindcase] {job.platform.name}:{job.target} got {len(body['data'])} rows, parsed {len(posts)}, {len(newPosts)} newer than {POSTS_NEWER_THAN}")
         return newPosts
