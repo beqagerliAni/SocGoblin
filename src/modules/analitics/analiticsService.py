@@ -48,13 +48,10 @@ class AnaliticsServiceClass():
     async def analyzePosts(self, request: list[PostTopicModel]):
         questions = self.buildQuestions(request)
         posts = loadDummyPosts()
-        print(f"[analitics] {len(posts)} posts, questions: {list(questions)}")
 
         postStates = buildPostStates(posts)
-        print(f"[analitics] sending {len(postStates)} posts to jev")
 
         postTopics, failedPosts = await self.jevService.chooseTopics(postStates, questions)
-        print(f"[analitics] done: {len(postTopics)} posts, {len(failedPosts)} failed posts")
 
         return {
             "posts": [
@@ -67,13 +64,10 @@ class AnaliticsServiceClass():
     async def analyzeComments(self, request: list[CommentComplaintsModel]):
         questions = self.buildQuestions(request)
         comments = loadDummyComments()
-        print(f"[analitics] {len(comments)} comments, questions: {list(questions)}")
 
         commentStates = buildCommentStates(comments)
-        print(f"[analitics] sending {len(commentStates)} comments to jev")
 
         commentTopics, failedComments = await self.jevService.chooseTopics(commentStates, questions)
-        print(f"[analitics] done: {len(commentTopics)} comments, {len(failedComments)} failed comments")
 
         return {
             "comments": [

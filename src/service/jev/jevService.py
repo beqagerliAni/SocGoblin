@@ -31,8 +31,5 @@ class JevService:
                 response = await self.client.system_one(state, questions)
         except Exception as error:
             failed[key] = str(error) or type(error).__name__
-            print(f"[jev] ERROR {key}: {failed[key]}")
             return key, None
-        answers = response.choices
-        print(f"[jev] {key} " + ", ".join(f"{name}={answer.choice} ({answer.confidence:.2f})" for name, answer in answers.items()))
-        return key, answers
+        return key, response.choices
