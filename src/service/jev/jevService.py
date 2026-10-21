@@ -1,10 +1,9 @@
 import asyncio
-from typing import Optional
+from typing import Any, Optional
 
-from typesafe_sdk import AsyncTypeSafeClient, Noul
+from typesafe_sdk import AsyncTypeSafeClient, Choice, ChoiceAnswer
 from src.config import JEV_KEY
-from src.model import FiltersModel, JevQuestions, PageModel
-from src.service.jev.util.stateBuilder import buildState
+from src.modules.analitics.model.shared.baseJevQuestionModel import BaseJevQuestionModel
 
 class JevService:
     
@@ -12,49 +11,25 @@ class JevService:
         self.client = AsyncTypeSafeClient(api_key=JEV_KEY, model="jev-latest")
         self.maxParallel = maxParallel
 
-    def buildNoulQuestions(self, filters: FiltersModel, instructions: str) -> JevQuestions:
-        questions: JevQuestions = {
-            "content_information": Noul(
-                instructions=instructions,
-                criteria={
-                    "true": f"The post is about: {filters.ContentInformation}",
-                    "false": f"The post is not about: {filters.ContentInformation}",
-                },
-            ),
-        }
-        if filters.hashtags:
-            hashtags = ", ".join(filters.hashtags)
-            questions["hashtags"] = Noul(
-                instructions=instructions,
-                criteria={
-                    "true": f"The post uses or is clearly about at least one of these hashtags: {hashtags}",
-                    "false": f"The post has nothing to do with any of these hashtags: {hashtags}",
-                },
-            )
-        return questions
+    def buildChoiceQuestion(self, question: BaseJevQuestionModel) -> Choice:
+        return Choice(instructions=question.instructions, criteria={topic: None for topic in question.topics})
 
-    async def extractPostData(self, state:list[PageModel], questions:JevQuestions, threshold: float = 0.6) -> tuple[list[PageModel], dict[str, str]]:
+    async def chooseTopics(self, states: dict[str, dict[str, Any]], question: Choice) -> tuple[dict[str, ChoiceAnswer], dict[str, str]]:
         limit = asyncio.Semaphore(self.maxParallel)
-        failedPosts: dict[str, str] = {}
+        failed: dict[str, str] = {}
         results = await asyncio.gather(
-            *(self.checkPost(limit, post, questions, threshold, failedPosts) for post in state)
+            *(self.chooseTopic(limit, key, state, question, failed) for key, state in states.items())
         )
-        return [post for post in results if post is not None], failedPosts
+        return {key: answer for key, answer in results if answer is not None}, failed
 
-    async def checkPost(self, limit: asyncio.Semaphore, post: PageModel, questions: JevQuestions, threshold: float, failedPosts: dict[str, str]) -> Optional[PageModel]:
-        state = buildState(post, ["text"])
-        if state is None:
-            print(f"[jev] skip {post.postUrl}: no text or hashtags")
-            return None
+    async def chooseTopic(self, limit: asyncio.Semaphore, key: str, state: dict[str, Any], question: Choice, failed: dict[str, str]) -> tuple[str, Optional[ChoiceAnswer]]:
         try:
             async with limit:
-                response = await self.client.system_one(state, questions)
+                response = await self.client.system_one(state, {"topic": question})
         except Exception as error:
-            failedPosts[post.postUrl] = str(error) or type(error).__name__
-            print(f"[jev] ERROR {post.postUrl}: {failedPosts[post.postUrl]}")
-            return None
-        nouls = [answer for answer in response.answers.values() if answer.type == "noul"]
-        print(f"[jev] {post.postUrl} " + ", ".join(f"{name}={answer.noul:.2f}" for name, answer in response.answers.items() if answer.type == "noul"))
-        if all(answer.noul >= threshold for answer in nouls):
-            return post
-        return None
+            failed[key] = str(error) or type(error).__name__
+            print(f"[jev] ERROR {key}: {failed[key]}")
+            return key, None
+        answer = response.choices["topic"]
+        print(f"[jev] {key} topic={answer.choice} ({answer.confidence:.2f})")
+        return key, answer

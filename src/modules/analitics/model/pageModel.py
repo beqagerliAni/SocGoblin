@@ -1,8 +1,10 @@
-from src.service.mindcase.enum.socialWebEnum import SocialWebEnum
 
-from .facebookPageModel import FacebookPageModel
-from .instagramPageModel import InstagramPageModel
-from .tiktokPageModel import TikTokPageModel
+
+from src.model.facebookPageModel import FacebookPageModel
+from src.model.instagramPageModel import InstagramPageModel
+from src.model.tiktokPageModel import TikTokPageModel
+from src.modules.analitics.model.socialWebEnum import SocialWebEnum
+
 
 PageModel = FacebookPageModel | InstagramPageModel | TikTokPageModel
 

@@ -1,6 +1,6 @@
 from typing import Any, Optional
 
-from src.model import PageModel
+from src.modules.analitics.model.pageModel import PageModel
 
 
 def buildState(post: PageModel, fields: list[str]) -> Optional[dict[str, Any]]:
