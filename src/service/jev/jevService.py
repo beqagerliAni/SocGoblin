@@ -11,25 +11,28 @@ class JevService:
         self.client = AsyncTypeSafeClient(api_key=JEV_KEY, model="jev-latest")
         self.maxParallel = maxParallel
 
-    def buildChoiceQuestion(self, question: BaseJevQuestionModel) -> Choice:
-        return Choice(instructions=question.instructions, criteria={topic: None for topic in question.topics})
+    def buildChoiceQuestions(self, questions: list[BaseJevQuestionModel]) -> dict[str, Choice]:
+        return {
+            question.analiticName: Choice(instructions=question.instructions, criteria={topic: None for topic in question.topics})
+            for question in questions
+        }
 
-    async def chooseTopics(self, states: dict[str, dict[str, Any]], question: Choice) -> tuple[dict[str, ChoiceAnswer], dict[str, str]]:
+    async def chooseTopics(self, states: dict[str, dict[str, Any]], questions: dict[str, Choice]) -> tuple[dict[str, dict[str, ChoiceAnswer]], dict[str, str]]:
         limit = asyncio.Semaphore(self.maxParallel)
         failed: dict[str, str] = {}
         results = await asyncio.gather(
-            *(self.chooseTopic(limit, key, state, question, failed) for key, state in states.items())
+            *(self.chooseTopic(limit, key, state, questions, failed) for key, state in states.items())
         )
-        return {key: answer for key, answer in results if answer is not None}, failed
+        return {key: answers for key, answers in results if answers is not None}, failed
 
-    async def chooseTopic(self, limit: asyncio.Semaphore, key: str, state: dict[str, Any], question: Choice, failed: dict[str, str]) -> tuple[str, Optional[ChoiceAnswer]]:
+    async def chooseTopic(self, limit: asyncio.Semaphore, key: str, state: dict[str, Any], questions: dict[str, Choice], failed: dict[str, str]) -> tuple[str, Optional[dict[str, ChoiceAnswer]]]:
         try:
             async with limit:
-                response = await self.client.system_one(state, {"topic": question})
+                response = await self.client.system_one(state, questions)
         except Exception as error:
             failed[key] = str(error) or type(error).__name__
             print(f"[jev] ERROR {key}: {failed[key]}")
             return key, None
-        answer = response.choices["topic"]
-        print(f"[jev] {key} topic={answer.choice} ({answer.confidence:.2f})")
-        return key, answer
+        answers = response.choices
+        print(f"[jev] {key} " + ", ".join(f"{name}={answer.choice} ({answer.confidence:.2f})" for name, answer in answers.items()))
+        return key, answers

@@ -1,8 +1,9 @@
 from fastapi import Depends
 
 from src.modules.analitics.analiticsService import AnaliticsServiceClass
-from src.modules.analitics.model.anliticsModel import AnaliticsModel
+from src.modules.analitics.model.commentComplaints import CommentComplaintsModel
 from src.modules.analitics.model.generateInstructions import GenerateInstructions
+from src.modules.analitics.model.postTopicModel import PostTopicModel
 from src.model.openAi.generateInstructions import GeneratedInstructions
 
 
@@ -15,5 +16,8 @@ class AnaliticsController():
     async def generateInstructions(self, request: GenerateInstructions) -> GeneratedInstructions:
         return await self.analiticsService.generateInstructions(request)
 
-    async def analyzePosts(self, request: AnaliticsModel):
+    async def analyzePosts(self, request: list[PostTopicModel]):
         return await self.analiticsService.analyzePosts(request)
+
+    async def analyzeComments(self, request: list[CommentComplaintsModel]):
+        return await self.analiticsService.analyzeComments(request)

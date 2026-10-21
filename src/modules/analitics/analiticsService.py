@@ -1,13 +1,20 @@
-# import asyncio
+from typing import Any
 
-from src.modules.analitics.model.anliticsModel import AnaliticsModel
+from fastapi import HTTPException
+from typesafe_sdk import Choice, ChoiceAnswer
+
+from src.modules.analitics.model.commentComplaints import CommentComplaintsModel
 from src.modules.analitics.model.generateInstructions import GenerateInstructions
-from src.modules.analitics.util.dummyData import loadDummyPosts
+from src.modules.analitics.model.postTopicModel import PostTopicModel
+from src.modules.analitics.model.shared.baseJevQuestionModel import BaseJevQuestionModel
+from src.modules.analitics.util.commentStates import buildCommentStates
+from src.modules.analitics.util.dummyData import loadDummyComments, loadDummyPosts
 from src.modules.analitics.util.postStates import buildPostStates
 from src.modules.analitics.prompt.instructionsPrompt import prompt as INSTRUCTIONS_PROMPT
 from src.model.openAi.generateInstructions import GeneratedInstructions
 from src.service.jev.jevService import JevService
 from src.service.openai.openaiService import OpenAiService
+
 
 
 class AnaliticsServiceClass():
@@ -18,51 +25,60 @@ class AnaliticsServiceClass():
         self.openAiService = OpenAiService(model="gpt-6-luna")
         self.jevService = JevService()
 
+    def topicResult(self, answer: ChoiceAnswer | None) -> dict[str, Any]:
+        return {
+            "topicType": answer.choice if answer else None,
+            "confidence": answer.confidence if answer else None,
+        }
+
     async def generateInstructions(self, request: GenerateInstructions) -> GeneratedInstructions:
         topics = "\n".join(f"- {topic}" for topic in request.topics)
         return await self.openAiService.structuredOutput(f"Topics:\n{topics}", GeneratedInstructions, INSTRUCTIONS_PROMPT)
 
-    async def analyzePosts(self, request: AnaliticsModel):
+    def buildQuestions(self, request: list[BaseJevQuestionModel]) -> dict[str, Choice]:
+        names = [question.analiticName for question in request]
+        duplicates = {name for name in names if names.count(name) > 1}
+        if duplicates:
+            raise HTTPException(status_code=400, detail=f"analiticName must be unique, duplicated: {sorted(duplicates)}")
+        return self.jevService.buildChoiceQuestions(request)
+
+    def analiticsResult(self, questions: dict[str, Choice], answers: dict[str, ChoiceAnswer] | None) -> dict[str, dict[str, Any]]:
+        return {name: self.topicResult((answers or {}).get(name)) for name in questions}
+
+    async def analyzePosts(self, request: list[PostTopicModel]):
+        questions = self.buildQuestions(request)
         posts = loadDummyPosts()
-        print(f"[analitics] {len(posts)} posts, post topics: {request.postTopic.topics}")
-        # print(f"[analitics] comment topics: {request.commentComplaints.topics}")
+        print(f"[analitics] {len(posts)} posts, questions: {list(questions)}")
 
         postStates = buildPostStates(posts)
-        # commentStates = {
-        #     f"{post.postUrl}#comment{index}": state
-        #     for post in posts
-        #     for index, comment in enumerate(post.topComments)
-        #     if (state := buildState(comment, ["text"])) is not None
-        # }
         print(f"[analitics] sending {len(postStates)} posts to jev")
 
-        postTopics, failedPosts = await self.jevService.chooseTopics(postStates, self.jevService.buildChoiceQuestion(request.postTopic))
-        # (postTopics, failedPosts), (commentTopics, failedComments) = await asyncio.gather(
-        #     self.jevService.chooseTopics(postStates, self.jevService.buildChoiceQuestion(request.postTopic)),
-        #     self.jevService.chooseTopics(commentStates, self.jevService.buildChoiceQuestion(request.commentComplaints)),
-        # )
+        postTopics, failedPosts = await self.jevService.chooseTopics(postStates, questions)
         print(f"[analitics] done: {len(postTopics)} posts, {len(failedPosts)} failed posts")
 
-        result = []
-        for post in posts:
-            postTopic = postTopics.get(post.postUrl)
-            # comments = []
-            # for index, comment in enumerate(post.topComments):
-            #     commentTopic = commentTopics.get(f"{post.postUrl}#comment{index}")
-            #     comments.append({
-            #         "text": comment.text,
-            #         "topicType": commentTopic.choice if commentTopic else None,
-            #         "confidence": commentTopic.confidence if commentTopic else None,
-            #     })
-            result.append({
-                "postUrl": post.postUrl,
-                "text": post.text,
-                "topicType": postTopic.choice if postTopic else None,
-                "confidence": postTopic.confidence if postTopic else None,
-                # "comments": comments,
-            })
         return {
-            "posts": result,
+            "posts": [
+                {"postUrl": post.postUrl, "text": post.text, "analitics": self.analiticsResult(questions, postTopics.get(post.postUrl))}
+                for post in posts
+            ],
             "failedPosts": failedPosts,
-            # "failedComments": failedComments,
+        }
+
+    async def analyzeComments(self, request: list[CommentComplaintsModel]):
+        questions = self.buildQuestions(request)
+        comments = loadDummyComments()
+        print(f"[analitics] {len(comments)} comments, questions: {list(questions)}")
+
+        commentStates = buildCommentStates(comments)
+        print(f"[analitics] sending {len(commentStates)} comments to jev")
+
+        commentTopics, failedComments = await self.jevService.chooseTopics(commentStates, questions)
+        print(f"[analitics] done: {len(commentTopics)} comments, {len(failedComments)} failed comments")
+
+        return {
+            "comments": [
+                {"commentUrl": comment.commentUrl, "postUrl": comment.postUrl, "text": comment.commentText, "analitics": self.analiticsResult(questions, commentTopics.get(comment.commentUrl))}
+                for comment in comments
+            ],
+            "failedComments": failedComments,
         }
